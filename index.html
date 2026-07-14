@@ -4,37 +4,56 @@
     <meta charset="UTF-8">
     <title>충제청년부 나눔 질문</title>
     <style>
+        :root { --primary: #5d8af8; --bg: #f8fbff; --text: #2d3748; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: sans-serif; background: #f0f4f8; padding: 20px; line-height: 1.6; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #333; margin-bottom: 20px; }
-        .menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
-        .category { padding: 15px; border: none; border-radius: 10px; background: #e2e8f0; cursor: pointer; font-weight: bold; }
-        .category.active { background: #4D7CFE; color: white; }
-        .info { text-align: center; margin: 10px 0; font-weight: bold; color: #4D7CFE; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 20px; font-size: 24px; font-weight: 800; }
+        
+        .setup-box { background: #f0f4ff; padding: 15px; border-radius: 20px; margin-bottom: 20px; text-align: center; }
+        .timer-input { width: 60px; padding: 5px; border-radius: 8px; border: 1px solid #cbd5e0; text-align: center; }
+        
+        .menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+        .category { padding: 12px; border: none; border-radius: 15px; background: #eef2f8; cursor: pointer; font-weight: 600; transition: 0.3s; }
+        .category.active { background: var(--primary); color: white; }
+        
         .buttons { display: flex; gap: 10px; margin-bottom: 20px; }
-        button.action { flex: 1; padding: 15px; border: none; border-radius: 10px; background: #334e68; color: white; cursor: pointer; }
-        .card { background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #4D7CFE; }
+        button.action { flex: 1; padding: 15px; border: none; border-radius: 15px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .btn-draw { background: var(--primary); color: white; }
+        .btn-copy { background: #e2e8f0; color: var(--text); }
+
+        #timerDisplay { font-size: 24px; font-weight: bold; color: #ff6b6b; text-align: center; margin-bottom: 15px; }
+        .card { background: #fff; padding: 20px; border-radius: 20px; margin-bottom: 12px; border: 1px solid #edf2f7; 
+                box-shadow: 0 4px 10px rgba(0,0,0,0.03); transform: translateY(20px); opacity: 0; }
+        @keyframes appear { to { transform: translateY(0); opacity: 1; } }
+        .animate { animation: appear 0.5s ease forwards; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎲 충제청년부 나눔 질문</h1>
+    <h1>🎲 나눔 질문함</h1>
     
-    <div class="menu">
-        <button class="category active" data-category="all">전체 (226개)</button>
-        <button class="category" data-category="ice">아이스브레이킹 (70개)</button>
-        <button class="category" data-category="life">삶과 가치관 (76개)</button>
-        <button class="category" data-category="faith">신앙 (80개)</button>
+    <div class="setup-box">
+        ⏱️ 나눔 시간 설정: <input type="number" id="timeInput" class="timer-input" value="3"> 분
     </div>
 
-    <div class="info" id="status">전체 질문을 불러왔습니다.</div>
+    <div class="menu">
+        <button class="category active" data-category="all">전체보기</button>
+        <button class="category" data-category="ice">아이스브레이킹</button>
+        <button class="category" data-category="life">삶과 가치관</button>
+        <button class="category" data-category="faith">신앙</button>
+    </div>
+
+    <div id="faithOption" style="text-align: center; margin-bottom: 15px;">
+        <label><input type="checkbox" id="deepFaith"> 초신자 배려: 깊은 질문 제외</label>
+    </div>
+
+    <div id="timerDisplay"></div>
 
     <div class="buttons">
-        <button class="action" onclick="drawQuestions()">질문 5개 뽑기</button>
-        <button class="action" onclick="copyQuestions()">복사하기</button>
-        <button class="action" onclick="resetView()">초기화</button>
+        <button class="action btn-draw" onclick="drawQuestions()">질문 뽑기</button>
+        <button class="action btn-copy" onclick="copyQuestions()">복사하기</button>
     </div>
 
     <div id="questionContainer"></div>
@@ -42,52 +61,61 @@
 
 <script>
     const DATA = {
-        ice: ["내가 가장 좋아하는 음식은 무엇인가요?", "내가 가장 싫어하는 음식은 무엇인가요?", "요즘 가장 자주 듣는 노래는 무엇인가요?", "가장 좋아하는 계절은 언제인가요?", "가장 좋아하는 여행지는 어디인가요?", "지금 당장 떠날 수 있다면 어디로 가고 싶나요?", "내 인생 최고의 음식은 무엇이었나요?", "요즘 가장 즐겨보는 유튜브 채널은?", "요즘 가장 많이 사용하는 앱은?", "하루 중 가장 행복한 시간은 언제인가요?", "내가 가장 좋아하는 카페 메뉴는?", "가장 좋아하는 아이스크림은?", "가장 좋아하는 라면은?", "평생 한 가지 음식만 먹어야 한다면?", "가장 기억에 남는 여행은?", "가장 좋아하는 영화는?", "가장 좋아하는 드라마는?", "가장 좋아하는 책은?", "내가 좋아하는 운동은?", "가장 좋아하는 취미는?", "최근 가장 많이 웃었던 일은?", "스트레스를 어떻게 푸나요?", "쉬는 날 가장 하고 싶은 일은?", "아침형 인간인가요? 밤형 인간인가요?", "혼자 있는 걸 좋아하나요? 함께 있는 걸 좋아하나요?", "내 별명은 무엇인가요?", "별명이 생긴 이유는?", "내 휴대폰 배경화면은 무엇인가요?", "내가 가장 좋아하는 색은?", "좋아하는 향기는?", "가장 좋아하는 동물은?", "동물이 된다면 무엇이 되고 싶나요?", "가장 좋아하는 과자는?", "가장 좋아하는 음료는?", "요즘 가장 사고 싶은 것은?", "평생 하나만 살 수 있다면 자동차? 집? 여행?", "요즘 푹 빠진 것이 있나요?", "내 버킷리스트 하나는?", "가장 기억에 남는 생일은?", "가장 재미있었던 학교 추억은?", "가장 창피했던 순간은?", "가장 웃겼던 에피소드는?", "초등학생 때 꿈은?", "중학생 때 꿈은?", "고등학생 때 꿈은?", "내 첫 아르바이트는?", "첫 월급으로 무엇을 했나요?", "가장 아끼는 물건은?", "내 방에서 가장 좋아하는 공간은?", "잠이 안 올 때 하는 일은?", "비 오는 날 가장 하고 싶은 것은?", "눈 오는 날 가장 하고 싶은 것은?", "가장 좋아하는 명절은?", "내가 가장 자신 있는 요리는?", "가장 실패했던 요리는?", "친구들이 나를 한 단어로 표현한다면?", "내 성격의 장점 하나는?", "내 성격의 단점 하나는?", "최근 나를 설레게 한 일은?", "최근 가장 기대되는 일정은?", "요즘 가장 배우고 싶은 것은?", "새로운 취미를 하나 시작한다면?", "무인도에 하나만 가져간다면?", "초능력이 생긴다면 어떤 능력을 갖고 싶나요?", "타임머신이 있다면 언제로 가고 싶나요?", "로또에 당첨된다면 가장 먼저 할 일은?", "일주일 휴가가 생기면 무엇을 하고 싶나요?", "가장 좋아하는 사진 한 장을 소개해 주세요.", "오늘 가장 감사한 일 하나를 말해 주세요.", "오늘 기분을 날씨로 표현한다면?"],
-        life: ["나를 한 단어로 표현한다면 무엇인가요?", "내가 가장 중요하게 생각하는 가치는 무엇인가요?", "최근 가장 감사했던 일은 무엇인가요?", "최근 가장 힘들었던 일은 무엇인가요?", "최근 가장 뿌듯했던 일은 무엇인가요?", "나를 가장 많이 성장시킨 경험은 무엇인가요?", "실패를 통해 가장 크게 배운 것은 무엇인가요?", "지금까지 받은 최고의 칭찬은 무엇인가요?", "지금까지 들었던 최고의 조언은 무엇인가요?", "내 인생을 바꾼 사건이 있다면 무엇인가요?", "내가 가장 존경하는 사람은 누구인가요?", "그 사람을 존경하는 이유는 무엇인가요?", "요즘 가장 많이 하는 고민은 무엇인가요?", "요즘 가장 행복한 순간은 언제인가요?", "내 삶에서 가장 소중한 사람은 누구인가요?", "내가 가장 닮고 싶은 사람은 누구인가요?", "어릴 적 나와 지금의 나는 어떻게 달라졌나요?", "10년 후 나는 어떤 사람이 되고 싶나요?", "5년 안에 꼭 이루고 싶은 목표는 무엇인가요?", "올해 꼭 이루고 싶은 목표는 무엇인가요?", "내가 가장 후회하는 선택은 무엇인가요?", "다시 돌아간다면 바꾸고 싶은 선택이 있나요?", "반대로 절대 바꾸고 싶지 않은 선택은 무엇인가요?", "가장 기억에 남는 도전은 무엇인가요?", "지금 가장 도전해보고 싶은 것은 무엇인가요?", "내가 생각하는 성공이란 무엇인가요?", "내가 생각하는 행복이란 무엇인가요?", "나에게 쉼이란 어떤 의미인가요?", "내가 가장 편안함을 느끼는 장소는 어디인가요?", "힘들 때 가장 의지하는 사람은 누구인가요?", "가장 오래된 친구와의 추억을 이야기해 주세요.", "내가 누군가를 용서했던 경험이 있나요?", "누군가에게 용서를 구했던 경험이 있나요?", "나를 가장 많이 웃게 만드는 사람은 누구인가요?", "내가 누군가를 도와 기뻤던 경험이 있나요?", "최근 감동받았던 일은 무엇인가요?", "최근 누군가에게 감사를 표현한 적이 있나요?", "최근 가장 큰 결정을 내린 일이 있나요?", "내가 가장 잘했다고 생각하는 결정은 무엇인가요?", "최근 가장 용기를 냈던 일은 무엇인가요?", "나에게 가장 큰 영향을 준 책이나 영화는 무엇인가요?", "내가 가장 아끼는 추억은 무엇인가요?", "지금까지 살면서 가장 행복했던 순간은 언제였나요?", "가장 많이 울었던 순간은 언제였나요?", "내 삶에서 가장 감사한 사람은 누구인가요?", "내가 생각하는 좋은 친구란 어떤 사람인가요?", "내가 생각하는 좋은 리더란 어떤 사람인가요?", "내가 듣고 싶은 말 한마디는 무엇인가요?", "내가 가장 자주 하는 말은 무엇인가요?", "나의 장점 하나를 이야기해 주세요.", "나의 단점 하나를 이야기해 주세요.", "내가 가장 자랑스러운 순간은 언제였나요?", "나를 가장 많이 변화시킨 사람은 누구인가요?", "최근 나를 설레게 한 일은 무엇인가요?", "내가 가장 좋아하는 나의 모습은 무엇인가요?", "고치고 싶은 습관이 있다면 무엇인가요?", "새로운 도전을 한다면 무엇을 해보고 싶나요?", "내 삶에서 절대 포기하고 싶지 않은 것은 무엇인가요?", "내가 가장 중요하게 생각하는 인간관계는 무엇인가요?", "요즘 가장 배우고 싶은 것은 무엇인가요?", "최근 가장 잘한 소비는 무엇인가요?", "최근 가장 아까웠던 소비는 무엇인가요?", "오늘 하루를 100점 만점에 몇 점 주고 싶나요?", "내 삶을 영화 제목으로 표현한다면?", "나를 가장 잘 표현하는 단어는 무엇인가요?", "나에게 가장 큰 힘이 되는 말은 무엇인가요?", "지금의 나에게 가장 필요한 것은 무엇이라고 생각하나요?", "최근 가장 크게 웃었던 에피소드를 들려주세요.", "앞으로 꼭 해보고 싶은 버킷리스트는 무엇인가요?", "지금 가장 기대되는 일이 있다면 무엇인가요?", "최근 나를 성장시킨 경험을 이야기해 주세요.", "내 인생에서 가장 의미 있는 하루는 언제였나요?", "내가 생각하는 진정한 행복은 무엇인가요?", "앞으로 어떤 사람으로 기억되고 싶나요?", "나 자신에게 해주고 싶은 말이 있다면?", "미래의 나에게 편지를 쓴다면 첫 문장은 무엇일까요?", "지금의 나를 가장 잘 설명하는 문장은 무엇인가요?", "오늘 이 자리에서 서로에게 가장 전하고 싶은 말은 무엇인가요?"],
-        faith: ["교회에 처음 왔을 때 어떤 느낌이었나요?", "하나님이라는 존재를 처음 생각해 본 것은 언제인가요?", "예수님에 대해 가장 궁금한 것은 무엇인가요?", "신앙에 대해 아직 이해되지 않는 부분이 있나요?", "교회에서 가장 따뜻함을 느꼈던 순간은 언제였나요?", "예배 시간에 가장 기억에 남는 순간이 있었나요?", "기도를 해본 적이 있다면 언제였나요?", "하나님께 질문 하나를 할 수 있다면 무엇을 묻고 싶나요?", "성경에서 가장 궁금한 이야기는 무엇인가요?", "교회가 어떤 곳이면 좋겠다고 생각하나요?", "나에게 하나님은 어떤 분이라고 생각하나요?", "요즘 하나님께 가장 많이 드리는 기도는 무엇인가요?", "최근 하나님께 감사했던 일을 나누어 주세요.", "응답받은 기도가 있다면 이야기해 주세요.", "아직도 기다리고 있는 기도가 있나요?", "하나님께 가장 위로받았던 순간은 언제였나요?", "최근 마음에 가장 와닿았던 말씀은 무엇인가요?", "최근 가장 은혜가 되었던 찬양은 무엇인가요?", "신앙생활을 하며 가장 행복했던 순간은 언제였나요?", "하나님을 가장 가까이 느꼈던 순간은 언제였나요?", "하나님께서 나를 변화시키셨다고 느끼는 부분이 있나요?", "예전의 나와 지금의 나는 어떤 점이 달라졌나요?", "하나님께 감사하는 습관이 있나요?", "최근 하나님께 순종했던 경험이 있나요?", "순종하기 어려웠던 경험이 있나요?", "하나님을 신뢰하기 어려웠던 순간이 있었나요?", "믿음이 흔들렸던 경험이 있나요?", "그 시간을 하나님께서는 어떻게 인도하셨나요?", "하나님께 가장 맡기기 어려운 부분은 무엇인가요?", "내 삶에서 가장 기도해야 할 부분은 무엇인가요?", "최근 하나님께 회개했던 일이 있나요?", "예수님의 어떤 성품을 가장 닮고 싶나요?", "나의 부족한 모습을 하나님께 맡겨본 적이 있나요?", "요즘 하나님께서 내게 가르치시는 것이 있다면 무엇인가요?", "최근 말씀을 통해 깨달은 것이 있다면 나누어 주세요.", "하나님께서 내 삶에 주신 가장 큰 선물은 무엇이라고 생각하나요?", "내 삶에서 가장 감사한 은혜는 무엇인가요?", "복음을 한 문장으로 표현한다면 어떻게 말할 수 있을까요?", "내가 처음 예수님을 인격적으로 만났다고 느꼈던 순간은 언제였나요?", "내 삶을 통해 하나님께서 이루고 계신 일은 무엇이라고 생각하나요?", "하나님께서 나를 사용하신 경험이 있나요?", "누군가를 위해 진심으로 기도했던 경험이 있나요?", "최근 누군가를 용서하기 위해 기도한 적이 있나요?", "공동체 안에서 하나님께서 내게 맡기신 역할은 무엇인가요?", "우리 공동체가 하나님 안에서 어떻게 세워지면 좋겠나요?", "내가 받은 사랑을 어떻게 다른 사람에게 흘려보낼 수 있을까요?", "최근 하나님께 감사 일기를 쓴다면 무엇을 적고 싶나요?", "하나님께 가장 많이 하는 질문은 무엇인가요?", "하나님께 가장 듣고 싶은 말씀은 무엇인가요?", "천국에 가서 예수님께 가장 먼저 드리고 싶은 말은 무엇인가요?", "하나님께 가장 죄송했던 순간은 언제였나요?", "하나님께 가장 감사했던 사건은 무엇인가요?", "나를 가장 많이 성장시킨 말씀은 무엇인가요?", "가장 좋아하는 성경 인물은 누구이며 그 이유는 무엇인가요?", "그 인물을 닮고 싶은 이유는 무엇인가요?", "최근 전도하고 싶은 사람이 있나요?", "그 사람을 위해 기도하고 있나요?", "하나님께서 내게 주신 달란트는 무엇이라고 생각하나요?", "그 달란트를 어떻게 하나님께 드릴 수 있을까요?", "내 삶에서 가장 큰 우상은 무엇이라고 생각하나요?", "하나님보다 더 의지하게 되는 것이 있나요?", "하나님께 내 모든 것을 맡긴다는 것은 어떤 의미일까요?", "하나님께서 지금 내게 원하시는 것은 무엇이라고 생각하나요?", "지금 하나님께 가장 드리고 싶은 고백은 무엇인가요?", "지금 내 기도의 제목 한 가지를 나누어 주세요.", "최근 가장 많이 묵상한 말씀은 무엇인가요?", "신앙생활을 하며 가장 힘들었던 시기는 언제였나요?", "그 시기를 하나님께서는 어떻게 사용하셨나요?", "예수님을 믿는다는 것이 내 삶에서 가장 크게 달라진 점은 무엇인가요?", "하나님께서 내 인생을 인도하고 계심을 느꼈던 순간은 언제였나요?", "내 삶에서 가장 큰 기적이라고 생각하는 일은 무엇인가요?", "앞으로 하나님과 어떤 관계를 맺어가고 싶나요?", "1년 후 신앙적으로 어떤 모습이 되어 있기를 바라나요?", "나를 위해 함께 기도해 주었으면 하는 제목이 있나요?", "오늘 하나님께 감사의 기도를 드린다면 가장 먼저 무엇을 감사할까요?", "오늘 이 모임을 통해 하나님께서 내게 말씀하시길 바라는 것은 무엇인가요?", "하나님께서 지금 이 순간 내게 '괜찮다'고 말씀하신다면 가장 위로받을 부분은 무엇일까요?", "오늘 이 자리에서 하나님께 한 문장으로 고백한다면 무엇이라고 말할까요?", "나에게 고난이란 무엇인가?", "진정한 제자의 삶이란 무엇이라고 생각하는가?"]
+        ice: ["가장 좋아하는 음식은?", "요즘 자주 듣는 노래는?", "가장 좋아하는 여행지는?", "내 인생 최고의 음식은?", "하루 중 가장 행복한 시간은?"],
+        life: ["나를 한 단어로 표현한다면?", "내가 가장 중요하게 생각하는 가치는?", "최근 가장 뿌듯했던 일은?", "가장 닮고 싶은 사람은?", "10년 후 나는 어떤 모습일까?"],
+        faith: ["교회에 처음 왔을 때 느낌은?", "하나님을 처음 생각한 때는?", "기도해 본 적 있나요?", "하나님은 나에게 어떤 분인가요?", "최근 감사했던 일은?"],
+        deepFaith: ["나에게 고난이란 무엇인가?", "진정한 제자의 삶이란 무엇인가?", "하나님께 가장 맡기기 어려운 부분은?"]
     };
 
-    let currentCategory = 'all';
-    let pool = [];
+    let timerInterval;
 
-    const btns = document.querySelectorAll('.category');
-    btns.forEach(btn => btn.addEventListener('click', (e) => {
-        btns.forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-        currentCategory = e.target.dataset.category;
-        document.getElementById('questionContainer').innerHTML = "";
-        document.getElementById('status').innerText = e.target.innerText + "가 선택되었습니다.";
-        setPool();
-    }));
-
-    function setPool() {
-        if(currentCategory === 'all') pool = [...DATA.ice, ...DATA.life, ...DATA.faith];
-        else pool = [...DATA[currentCategory]];
+    function startTimer() {
+        clearInterval(timerInterval);
+        let time = document.getElementById('timeInput').value * 60;
+        const display = document.getElementById('timerDisplay');
+        
+        timerInterval = setInterval(() => {
+            let m = Math.floor(time / 60);
+            let s = time % 60;
+            display.innerText = `⏳ 남은 시간: ${m}분 ${s < 10 ? '0'+s : s}초`;
+            if (--time < 0) { clearInterval(timerInterval); display.innerText = "⏰ 나눔 시간이 종료되었습니다!"; }
+        }, 1000);
     }
 
+    document.querySelectorAll('.category').forEach(btn => btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.category').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        document.getElementById('faithOption').style.display = (e.target.dataset.category === 'faith' || e.target.dataset.category === 'all') ? 'block' : 'none';
+    }));
+
     function drawQuestions() {
-        if(pool.length < 5) { alert("질문이 부족합니다. 초기화하세요."); return; }
+        const cat = document.querySelector('.category.active').dataset.category;
+        const excludeDeep = document.getElementById('deepFaith').checked;
+        let pool = [];
+        
+        if(cat === 'all') pool = [...DATA.ice, ...DATA.life, ...DATA.faith, ...(excludeDeep ? [] : DATA.deepFaith)];
+        else if(cat === 'ice') pool = [...DATA.ice];
+        else if(cat === 'life') pool = [...DATA.life];
+        else pool = [...DATA.faith, ...(excludeDeep ? [] : DATA.deepFaith)];
+
         const container = document.getElementById('questionContainer');
         container.innerHTML = "";
+        startTimer(); // 질문 뽑을 때 타이머 시작
+
         for(let i=0; i<5; i++) {
-            const idx = Math.floor(Math.random() * pool.length);
-            const q = pool.splice(idx, 1)[0];
-            container.innerHTML += `<div class="card">${q}</div>`;
+            const q = pool[Math.floor(Math.random() * pool.length)];
+            const div = document.createElement('div');
+            div.className = 'card animate';
+            div.style.animationDelay = `${i * 0.15}s`; // 촤르륵 나타나는 효과
+            div.innerText = `${i+1}. ${q}`;
+            container.appendChild(div);
         }
     }
 
     function copyQuestions() {
-        const text = Array.from(document.querySelectorAll('.card')).map((c, i) => `${i+1}. ${c.innerText}`).join('\n');
-        if(!text) return;
-        navigator.clipboard.writeText(text); alert("복사되었습니다!");
+        const text = Array.from(document.querySelectorAll('.card')).map(c => c.innerText).join('\n');
+        if(text) { navigator.clipboard.writeText(text); alert("복사되었습니다!"); }
     }
-
-    function resetView() {
-        document.getElementById('questionContainer').innerHTML = "";
-        setPool();
-    }
-
-    setPool();
 </script>
 </body>
 </html>
