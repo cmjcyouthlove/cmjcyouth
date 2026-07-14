@@ -1,83 +1,98 @@
-﻿<!DOCTYPE html>
-<html lang="ko"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>교회 나눔 질문 룰렛</title>
-<style>
-body{margin:0;font-family:'Malgun Gothic',sans-serif;background:linear-gradient(135deg,#6ea8fe,#d6e4ff);}
-.wrap{max-width:980px;margin:auto;padding:30px}
-h1{text-align:center;color:#fff}
-.panel{background:white;border-radius:18px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
-.controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-button,select{padding:12px 18px;border:none;border-radius:10px;font-size:16px}
-button{background:#4a6cf7;color:white;cursor:pointer}
-button:hover{transform:scale(1.03)}
-.card{margin:14px 0;padding:18px;border-radius:14px;background:#f6f8ff;opacity:0;transform:translateY(20px);animation:show .45s forwards}
-@keyframes show{to{opacity:1;transform:none}}
-#count{text-align:center;margin:15px;font-weight:bold}
-footer{text-align:center;color:white;margin-top:20px}
-</style></head>
-<body><div class="wrap">
-<h1>🎲 교회 나눔 질문 랜덤 뽑기</h1>
-<div class="panel">
-<div class="controls">
-<select id="cat"></select>
-<button onclick="draw()">🎲 질문 5개 뽑기</button>
-<button onclick="copyQ()">📋 복사</button>
-<button onclick="resetPool()">🔄 전체 초기화</button>
-<button onclick="toggleFull()">🖥️ 전체화면</button>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>충제청년부 나눔 질문</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Pretendard", "Noto Sans KR", sans-serif; min-height: 100vh; background: linear-gradient(135deg, #6EA8FE, #A5C8FF, #DCEBFF); padding-bottom: 50px; }
+        .container { max-width: 900px; margin: auto; padding: 40px 20px; }
+        header { text-align: center; color: white; margin-bottom: 30px; }
+        .menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .category { background: white; border: none; border-radius: 12px; padding: 15px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .category.active { background: #4D7CFE; color: white; }
+        .buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        button { flex: 1; padding: 15px; border: none; border-radius: 12px; background: #4D7CFE; color: white; font-weight: bold; cursor: pointer; }
+        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header><h1>🎲 충제청년부 나눔 질문</h1></header>
+
+    <div class="menu">
+        <button class="category active" data-category="all">전체</button>
+        <button class="category" data-category="ice">아이스브레이킹</button>
+        <button class="category" data-category="life">삶과 가치관</button>
+        <button class="category" data-category="faith">신앙</button>
+    </div>
+
+    <div id="faithOption" class="hidden" style="margin-bottom:15px; background:white; padding:10px; border-radius:10px;">
+        <input type="checkbox" id="deepFaith"> 🌳 깊은 신앙 질문 포함
+    </div>
+
+    <div class="buttons">
+        <button id="drawBtn">질문 5개 뽑기</button>
+        <button id="copyBtn">복사하기</button>
+        <button id="resetBtn">초기화</button>
+    </div>
+
+    <div style="text-align:center; margin-bottom:20px; font-weight:bold;">남은 질문 수: <span id="remain">0</span></div>
+    <div id="questionContainer"></div>
 </div>
-<div id="count"></div>
-<div id="list"></div>
-</div>
-<footer></footer>
-</div>
+
 <script>
-const all={'🎉 아이스브레이킹': ['내가 가장 좋아하는 음식은?', '내가 가장 좋아하지 않는 음식은?', '내가 먹어본 것 중 가장 맛있었던 최고의 요리는?', '이번 주 나에게 최고로 좋았던 일 or 최악의 일은?', '우리 집에서 내가 제일 좋아하는 곳은 어디인가요?', '집에서 내가 즐겁게 할 수 있는 일이 한가지 있다면?', '내가 10대때 즐기던 취미는?', '별명이 무엇인가요? 그 별명은 언제 어디에서 어떻게 얻게 되었나요?', '나의 첫번째 직업은?', '내가 경험해 본 최고의 태풍이나 천재지변은?', '교회생활을 하면서 가장 재미있었던 일은?', '비 오는 날 무엇을 하나요?', '내가 제일 아끼는 것은?', '내가 가장 좋아하는 옷은?', '내가 만들어 본 음식 중 가장 실패작은 무엇이었나요?', '내가 먹어 본 음식 중 가장 형편 없었던 음식은?', '이사를 하거나 집안 인테리어를 하면서 가장 맘에 들었던 것은?', '내 이웃 중에 소개해 주고 싶은 좋은 이웃 or 독특한 이웃이 있나요?', '내가 사는 동네에서 가장 마음에 드는 것은 무엇인가요?', '내가 어릴 때 친구들과 자주 가던 곳은?', '내가 만약 동물이 된다면 무엇이 되고 싶나요? 그 이유는?', '내가 가장 처음 돈을 벌어서 구입한 것은?', '내가 구입한 것 중 가장 비쌌던 것은?', '내가 처음으로 어떤 경쟁에서 이겼을 때는 언제인가요? 그 때의 기분은?', '나의 어머니와 가장 닮은 점은 무엇인가요?', '나는 나의 이름을 좋아하나요? 다른 이름을 선택한다면?', '원하는 직업을 무엇이든 가질 수 있다면?', '지금까지 내가 들어 본 최고의 충고는?', '하루 동안 투명인간이 된다면?', '내가 만나본 사람 중 가장 잊을 수 없는 개성을 가진 사람은?', '가정을 가정답게 만드는 것은?', '학창시절 가장 좋아했던 사람은?', '처음 이성과 손을 잡았던 기억이 있나요?', '가장 완벽한 나이는 몇 살이라고 생각하나요?', '삶 속에서 어떤 사건을 생각나게 하는 노래가 있나요?', '꼭 다시 가보고 싶은 곳은?', '크리스천으로서 삶이 더욱 풍성해지기 위해 할 수 있는 일은?', '다시 살고 싶은 나이는?', '죽는 방법을 선택할 수 있다면?', '삶이 무겁게 느껴질 때 하는 행동은?', '인생에서 가장 감사한 일은?', '가장 행복했던 순간은?', '할아버지·할머니와의 추억은?', '사람들이 보는 나와 실제 나는?', '실패가 없다면 이루고 싶은 두 가지는?', '아버지의 좋은 점은?', '어머니의 좋은 점은?', '학창시절은 어떠했나요?', '밤 10시쯤 나는 무엇을 하나요?', '위급한 상황이면 누구에게 먼저 전화할까요?'], '😊 일상·관계': ['지난 일주일 중 가장 좋았던 요일은?', '어떤 상황에서 눈물이 나나요?', '어릴 적 꿈은?', '어릴 때 살던 집의 특이한 점은?', '태극기를 보면 드는 감정은?', '신호등이 바뀌려 하면 뛰나요 기다리나요?', '성장기에 독특했던 행동은?', '가장 만족스러운 일은?', '나를 한 단어로 표현한다면?', '어릴 때 가장 좋았던 추억은?', '예수님을 처음 들었을 때는?', '예수님을 따르는 삶이란?', '예수님은 왜 구원자인가요?', '선한 영향력을 위해 필요한 노력은?', '지금 느끼는 감사와 축복은?', '영적으로 극복해야 할 과제는?', '믿음의 보상은?', '재능으로 하나님을 어떻게 섬길 수 있을까요?', '가장 인상적인 성경 인물은?', '예수님의 성품 중 닮은 점과 부족한 점은?', '가장 유명한 사람을 만나본 경험은?', '가장 좋아했던 선생님은?', '좋아하는 영화·드라마·책은?', '소그룹에서 얻고 싶은 것은?', '소그룹에서 꼭 하고 싶은 것은?', '믿음의 씨앗을 심어준 사람은?', '오늘 하나님을 만난다면?', '선교를 간다면 어디로?', '신앙 성숙을 위한 계획은?', '믿음의 가장 중요한 가치?', '부업을 한다면?', '무인도에 가져갈 것?', '큰 힘이 되는 것은?', '이번 주 시험(유혹)은?', '일주일간 살아보고 싶은 사람은?', '갖고 싶은 예술적 재능은?', '내 인생 책 제목은?', '저녁식사에 초대할 역사적 인물은?', '일주일 보호해주고 싶은 사람은?', '아무 조건 없이 하고 싶은 것은?', '가장 많은 시간을 쓰는 것은?', '여가시간은 어떻게 보내나요?', '작년 가장 기억나는 일은?', '최근 가장 큰 도전은?', '좋아하는 음식 종류는?', '가장 중요한 가치와 실천은?', '이루고 싶은 목표는?', '어떤 사람으로 기억되고 싶나요?', '개선하고 싶은 부분은?', '더 좋은 사람이 되기 위한 노력은?'], '🙏 신앙': ['하루 중 가장 행복한 시간은?', '요즘 가장 자주 하는 생각은?', '최근 가장 많이 웃은 일은?', '스트레스 해소법은?', '가장 자신 있는 능력은?', '가장 자신 없는 부분은?', '배우고 싶은 것은?', '지금 가장 필요한 것은?', '사람들이 칭찬하는 나의 장점은?', '스스로 좋아하는 성격은?', '고치고 싶은 습관은?', '아침형인가 밤형인가?', '혼자 vs 함께?', '좋아하는 계절은?', '하루 휴대폰 없이 가능?', '가장 많이 사용하는 앱은?', '말버릇은?', '나에게 쉼이란?', '좋아하는 향기는?', '좋아하는 풍경은?', '가장 편안한 사람은?', '친구에게 중요한 것은?', '성장시켜준 사람은?', '가장 고마웠던 순간은?', '용서했던 경험은?', '용서를 구한 경험은?', '최고의 선물은?', '기억에 남는 선물은?', '가장 오래된 친구 추억은?', '좋은 사람이란?', '존경하는 사람의 공통점은?', '첫인상은 어떻게 보이고 싶나요?', '가장 듣고 싶은 말은?', '최근 감동받은 일은?', '누군가를 도운 경험은?', '최근 용기냈던 일은?', '실패를 통해 배운 것은?', '올해 가장 잘한 선택은?', '올해 가장 후회되는 선택은?', '다시 도전하고 싶은 것은?', '가장 큰 결정은?', '가장 오래 노력한 일은?', '포기하지 않아 다행인 일은?', '작은 목표는?', '1년 후 어떤 사람이 되고 싶은가?', '10년 후에도 지킬 것은?', '성장시키는 습관은?', '배우고 싶은 인생교훈은?', '어린 나에게 한마디?', '미래의 나에게 한마디?'], '✨ 깊은 신앙': ['오늘 감사한 일 세 가지는?', '작은 행복은?', '하나님께 감사한 일은?', '예상 못한 축복은?', '힘든 뒤 감사했던 경험은?', '나를 웃게 만드는 사람은?', '절대 없어서는 안 될 것은?', '평범한 일상의 소중함을 느낀 순간은?', '오늘 감사일기에 적을 것은?', '지금 행복해질 방법은?', '하나님을 처음 생각한 때는?', '신앙에 가장 궁금한 점은?', '교회 첫인상은?', '교회에서 따뜻했던 기억은?', '예배 중 기억나는 순간은?', '하나님께 질문 하나를 한다면?', '가장 궁금한 성경 이야기는?', '믿음이란?', '믿는 사람에게 필요한 것은?', '교회가 어떤 곳이 되면 좋겠나요?', '하나님을 가장 가까이 느낀 순간은?', '가장 많이 기도하는 내용은?', '응답받은 기도는?', '아직 응답받지 못한 기도는?', '하나님께 가장 감사했던 사건은?', '하나님께 배우는 것은?', '마음에 와닿은 말씀은?', '변화된 부분은?', '신앙생활에서 가장 힘들었던 순간은?', '어떻게 이겨냈나요?', '맡기기 어려운 부분은?', '믿음이 흔들렸던 경험은?', '하나님은 어떻게 역사하셨나요?', '순종하기 어려웠던 경험은?', '요즘 가장 많이 드리는 기도는?', '공동체에서 중요한 가치는?', '기억에 남는 배려는?', '공동체를 위해 할 수 있는 일은?', '몰래 선행한 경험은?', '다른 사람의 장점을 잘 찾나요?', '격려가 필요한 사람은?', '기도하는 사람이 있나요?', '시간을 내어준 경험은?', '받은 사랑을 어떻게 흘려보낼까요?', '공동체에 보내신 이유는?', '가장 중요한 우선순위는?', '내려놓아야 할 것은?', '다시는 잃고 싶지 않은 것은?', '마지막 하루라면 누구를 만나고 싶나요?', '지금의 나를 한 문장으로 표현한다면?']};
-let pool={};
-for(const k in all) pool[k]=[...all[k]];
-const sel=document.getElementById('cat');
-sel.innerHTML='<option>전체</option>'+Object.keys(all).map(x=>`<option>${x}</option>`).join('');
+    const QUESTIONS = {
+        ice: ["내가 가장 좋아하는 음식은 무엇인가요?", "내가 가장 싫어하는 음식은 무엇인가요?", "요즘 가장 자주 듣는 노래는 무엇인가요?", "가장 좋아하는 계절은 언제인가요?", "가장 좋아하는 여행지는 어디인가요?", "지금 당장 떠날 수 있다면 어디로 가고 싶나요?", "내 인생 최고의 음식은 무엇이었나요?", "요즘 가장 즐겨보는 유튜브 채널은?", "요즘 가장 많이 사용하는 앱은?", "하루 중 가장 행복한 시간은 언제인가요?", "내가 가장 좋아하는 카페 메뉴는?", "가장 좋아하는 아이스크림은?", "가장 좋아하는 라면은?", "평생 한 가지 음식만 먹어야 한다면?", "가장 기억에 남는 여행은?", "가장 좋아하는 영화는?", "가장 좋아하는 드라마는?", "가장 좋아하는 책은?", "내가 좋아하는 운동은?", "가장 좋아하는 취미는?", "최근 가장 많이 웃었던 일은?", "스트레스를 어떻게 푸나요?", "쉬는 날 가장 하고 싶은 일은?", "아침형 인간인가요? 밤형 인간인가요?", "혼자 있는 걸 좋아하나요? 함께 있는 걸 좋아하나요?", "내 별명은 무엇인가요?", "별명이 생긴 이유는?", "내 휴대폰 배경화면은 무엇인가요?", "내가 가장 좋아하는 색은?", "좋아하는 향기는?", "가장 좋아하는 동물은?", "동물이 된다면 무엇이 되고 싶나요?", "가장 좋아하는 과자는?", "가장 좋아하는 음료는?", "요즘 가장 사고 싶은 것은?", "평생 하나만 살 수 있다면 자동차? 집? 여행?", "요즘 푹 빠진 것이 있나요?", "내 버킷리스트 하나는?", "가장 기억에 남는 생일은?", "가장 재미있었던 학교 추억은?", "가장 창피했던 순간은?", "가장 웃겼던 에피소드는?", "초등학생 때 꿈은?", "중학생 때 꿈은?", "고등학생 때 꿈은?", "내 첫 아르바이트는?", "첫 월급으로 무엇을 했나요?", "가장 아끼는 물건은?", "내 방에서 가장 좋아하는 공간은?", "잠이 안 올 때 하는 일은?", "비 오는 날 가장 하고 싶은 것은?", "눈 오는 날 가장 하고 싶은 것은?", "가장 좋아하는 명절은?", "내가 가장 자신 있는 요리는?", "가장 실패했던 요리는?", "친구들이 나를 한 단어로 표현한다면?", "내 성격의 장점 하나는?", "내 성격의 단점 하나는?", "최근 나를 설레게 한 일은?", "최근 가장 기대되는 일정은?", "요즘 가장 배우고 싶은 것은?", "새로운 취미를 하나 시작한다면?", "무인도에 하나만 가져간다면?", "초능력이 생긴다면 어떤 능력을 갖고 싶나요?", "타임머신이 있다면 언제로 가고 싶나요?", "로또에 당첨된다면 가장 먼저 할 일은?", "일주일 휴가가 생기면 무엇을 하고 싶나요?", "가장 좋아하는 사진 한 장을 소개해 주세요.", "오늘 가장 감사한 일 하나를 말해 주세요.", "오늘 기분을 날씨로 표현한다면?"],
+        life: ["나를 한 단어로 표현한다면 무엇인가요?", "내가 가장 중요하게 생각하는 가치는 무엇인가요?", "최근 가장 감사했던 일은 무엇인가요?", "최근 가장 힘들었던 일은 무엇인가요?", "최근 가장 뿌듯했던 일은 무엇인가요?", "나를 가장 많이 성장시킨 경험은 무엇인가요?", "실패를 통해 가장 크게 배운 것은 무엇인가요?", "지금까지 받은 최고의 칭찬은 무엇인가요?", "지금까지 들었던 최고의 조언은 무엇인가요?", "내 인생을 바꾼 사건이 있다면 무엇인가요?", "내가 가장 존경하는 사람은 누구인가요?", "그 사람을 존경하는 이유는 무엇인가요?", "요즘 가장 많이 하는 고민은 무엇인가요?", "요즘 가장 행복한 순간은 언제인가요?", "내 삶에서 가장 소중한 사람은 누구인가요?", "내가 가장 닮고 싶은 사람은 누구인가요?", "어릴 적 나와 지금의 나는 어떻게 달라졌나요?", "10년 후 나는 어떤 사람이 되고 싶나요?", "5년 안에 꼭 이루고 싶은 목표는 무엇인가요?", "올해 꼭 이루고 싶은 목표는 무엇인가요?", "내가 가장 후회하는 선택은 무엇인가요?", "다시 돌아간다면 바꾸고 싶은 선택이 있나요?", "반대로 절대 바꾸고 싶지 않은 선택은 무엇인가요?", "가장 기억에 남는 도전은 무엇인가요?", "지금 가장 도전해보고 싶은 것은 무엇인가요?", "내가 생각하는 성공이란 무엇인가요?", "내가 생각하는 행복이란 무엇인가요?", "나에게 쉼이란 어떤 의미인가요?", "내가 가장 편안함을 느끼는 장소는 어디인가요?", "힘들 때 가장 의지하는 사람은 누구인가요?", "가장 오래된 친구와의 추억을 이야기해 주세요.", "내가 누군가를 용서했던 경험이 있나요?", "누군가에게 용서를 구했던 경험이 있나요?", "나를 가장 많이 웃게 만드는 사람은 누구인가요?", "내가 누군가를 도와 기뻤던 경험이 있나요?", "최근 감동받았던 일은 무엇인가요?", "최근 누군가에게 감사를 표현한 적이 있나요?", "최근 가장 큰 결정을 내린 일이 있나요?", "내가 가장 잘했다고 생각하는 결정은 무엇인가요?", "최근 가장 용기를 냈던 일은 무엇인가요?", "나에게 가장 큰 영향을 준 책이나 영화는 무엇인가요?", "내가 가장 아끼는 추억은 무엇인가요?", "지금까지 살면서 가장 행복했던 순간은 언제였나요?", "가장 많이 울었던 순간은 언제였나요?", "내 삶에서 가장 감사한 사람은 누구인가요?", "내가 생각하는 좋은 친구란 어떤 사람인가요?", "내가 생각하는 좋은 리더란 어떤 사람인가요?", "내가 듣고 싶은 말 한마디는 무엇인가요?", "내가 가장 자주 하는 말은 무엇인가요?", "나의 장점 하나를 이야기해 주세요.", "나의 단점 하나를 이야기해 주세요.", "내가 가장 자랑스러운 순간은 언제였나요?", "나를 가장 많이 변화시킨 사람은 누구인가요?", "최근 나를 설레게 한 일은 무엇인가요?", "내가 가장 좋아하는 나의 모습은 무엇인가요?", "고치고 싶은 습관이 있다면 무엇인가요?", "새로운 도전을 한다면 무엇을 해보고 싶나요?", "내 삶에서 절대 포기하고 싶지 않은 것은 무엇인가요?", "내가 가장 중요하게 생각하는 인간관계는 무엇인가요?", "요즘 가장 배우고 싶은 것은 무엇인가요?", "최근 가장 잘한 소비는 무엇인가요?", "최근 가장 아까웠던 소비는 무엇인가요?", "오늘 하루를 100점 만점에 몇 점 주고 싶나요?", "내 삶을 영화 제목으로 표현한다면?", "나를 가장 잘 표현하는 단어는 무엇인가요?", "나에게 가장 큰 힘이 되는 말은 무엇인가요?", "지금의 나에게 가장 필요한 것은 무엇이라고 생각하나요?", "최근 가장 크게 웃었던 에피소드를 들려주세요.", "앞으로 꼭 해보고 싶은 버킷리스트는 무엇인가요?", "지금 가장 기대되는 일이 있다면 무엇인가요?", "최근 나를 성장시킨 경험을 이야기해 주세요.", "내 인생에서 가장 의미 있는 하루는 언제였나요?", "내가 생각하는 진정한 행복은 무엇인가요?", "앞으로 어떤 사람으로 기억되고 싶나요?", "나 자신에게 해주고 싶은 말이 있다면?", "미래의 나에게 편지를 쓴다면 첫 문장은 무엇일까요?", "지금의 나를 가장 잘 설명하는 문장은 무엇인가요?", "오늘 이 자리에서 서로에게 가장 전하고 싶은 말은 무엇인가요?"],
+        faith: ["교회에 처음 왔을 때 어떤 느낌이었나요?", "하나님이라는 존재를 처음 생각해 본 것은 언제인가요?", "예수님에 대해 가장 궁금한 것은 무엇인가요?", "신앙에 대해 아직 이해되지 않는 부분이 있나요?", "교회에서 가장 따뜻함을 느꼈던 순간은 언제였나요?", "예배 시간에 가장 기억에 남는 순간이 있었나요?", "기도를 해본 적이 있다면 언제였나요?", "하나님께 질문 하나를 할 수 있다면 무엇을 묻고 싶나요?", "성경에서 가장 궁금한 이야기는 무엇인가요?", "교회가 어떤 곳이면 좋겠다고 생각하나요?", "나에게 하나님은 어떤 분이라고 생각하나요?", "요즘 하나님께 가장 많이 드리는 기도는 무엇인가요?", "최근 하나님께 감사했던 일을 나누어 주세요.", "응답받은 기도가 있다면 이야기해 주세요.", "아직도 기다리고 있는 기도가 있나요?", "하나님께 가장 위로받았던 순간은 언제였나요?", "최근 마음에 가장 와닿았던 말씀은 무엇인가요?", "최근 가장 은혜가 되었던 찬양은 무엇인가요?", "신앙생활을 하며 가장 행복했던 순간은 언제였나요?", "하나님을 가장 가까이 느꼈던 순간은 언제였나요?", "하나님께서 나를 변화시키셨다고 느끼는 부분이 있나요?", "예전의 나와 지금의 나는 어떤 점이 달라졌나요?", "하나님께 감사하는 습관이 있나요?", "최근 하나님께 순종했던 경험이 있나요?", "순종하기 어려웠던 경험이 있나요?", "하나님을 신뢰하기 어려웠던 순간이 있었나요?", "믿음이 흔들렸던 경험이 있나요?", "그 시간을 하나님께서는 어떻게 인도하셨나요?", "하나님께 가장 맡기기 어려운 부분은 무엇인가요?", "내 삶에서 가장 기도해야 할 부분은 무엇인가요?", "최근 하나님께 회개했던 일이 있나요?", "예수님의 어떤 성품을 가장 닮고 싶나요?", "나의 부족한 모습을 하나님께 맡겨본 적이 있나요?", "요즘 하나님께서 내게 가르치시는 것이 있다면 무엇인가요?", "최근 말씀을 통해 깨달은 것이 있다면 나누어 주세요.", "하나님께서 내 삶에 주신 가장 큰 선물은 무엇이라고 생각하나요?", "내 삶에서 가장 감사한 은혜는 무엇인가요?", "복음을 한 문장으로 표현한다면 어떻게 말할 수 있을까요?", "내가 처음 예수님을 인격적으로 만났다고 느꼈던 순간은 언제였나요?", "내 삶을 통해 하나님께서 이루고 계신 일은 무엇이라고 생각하나요?", "하나님께서 나를 사용하신 경험이 있나요?", "누군가를 위해 진심으로 기도했던 경험이 있나요?", "최근 누군가를 용서하기 위해 기도한 적이 있나요?", "공동체 안에서 하나님께서 내게 맡기신 역할은 무엇이라고 생각하나요?", "우리 공동체가 하나님 안에서 어떻게 세워지면 좋겠나요?", "내가 받은 사랑을 어떻게 다른 사람에게 흘려보낼 수 있을까요?", "최근 하나님께 감사 일기를 쓴다면 무엇을 적고 싶나요?", "하나님께 가장 많이 하는 질문은 무엇인가요?", "하나님께 가장 듣고 싶은 말씀은 무엇인가요?", "천국에 가서 예수님께 가장 먼저 드리고 싶은 말은 무엇인가요?", "하나님께 가장 죄송했던 순간은 언제였나요?", "하나님께 가장 감사했던 사건은 무엇인가요?", "나를 가장 많이 성장시킨 말씀은 무엇인가요?", "가장 좋아하는 성경 인물은 누구이며 그 이유는 무엇인가요?", "그 인물을 닮고 싶은 이유는 무엇인가요?", "최근 전도하고 싶은 사람이 있나요?", "그 사람을 위해 기도하고 있나요?", "하나님께서 내게 주신 달란트는 무엇이라고 생각하나요?", "그 달란트를 어떻게 하나님께 드릴 수 있을까요?", "내 삶에서 가장 큰 우상은 무엇이라고 생각하나요?", "하나님보다 더 의지하게 되는 것이 있나요?", "하나님께 내 모든 것을 맡긴다는 것은 어떤 의미일까요?", "하나님께서 지금 내게 원하시는 것은 무엇이라고 생각하나요?", "지금 하나님께 가장 드리고 싶은 고백은 무엇인가요?", "지금 내 기도의 제목 한 가지를 나누어 주세요.", "최근 가장 많이 묵상한 말씀은 무엇인가요?", "신앙생활을 하며 가장 힘들었던 시기는 언제였나요?", "그 시기를 하나님께서는 어떻게 사용하셨나요?", "예수님을 믿는다는 것이 내 삶에서 가장 크게 달라진 점은 무엇인가요?", "하나님께서 내 인생을 인도하고 계심을 느꼈던 순간은 언제였나요?", "내 삶에서 가장 큰 기적이라고 생각하는 일은 무엇인가요?", "앞으로 하나님과 어떤 관계를 맺어가고 싶나요?", "1년 후 신앙적으로 어떤 모습이 되어 있기를 바라나요?", "나를 위해 함께 기도해 주었으면 하는 제목이 있나요?", "오늘 하나님께 감사의 기도를 드린다면 가장 먼저 무엇을 감사할까요?", "오늘 이 모임을 통해 하나님께서 내게 말씀하시길 바라는 것은 무엇인가요?", "하나님께서 지금 이 순간 내게 '괜찮다'고 말씀하신다면 가장 위로받을 부분은 무엇일까요?", "오늘 이 자리에서 하나님께 한 문장으로 고백한다면 무엇이라고 말할까요?"],
+        deepFaith: ["나에게 고난이란 무엇인가?", "진정한 제자의 삶이란 무엇이라고 생각하는가?"]
+    };
 
-function currentPool(){
- if(sel.value==="전체"){
-   if(!pool["전체"]) pool["전체"]=Object.values(pool).flat();
-   return pool["전체"];
- }
- return pool[sel.value];
-}
+    let pool = [];
+    const container = document.getElementById("questionContainer");
+    const remainEl = document.getElementById("remain");
 
-function rebuildAll(){pool["전체"]=Object.values(all).flat().filter(q=>!used.has(q));}
+    function updatePool() {
+        const cat = document.querySelector(".category.active").dataset.category;
+        const includeDeep = document.getElementById("deepFaith").checked;
+        if(cat === "all") pool = [...QUESTIONS.ice, ...QUESTIONS.life, ...QUESTIONS.faith, ...QUESTIONS.deepFaith];
+        else if(cat === "ice") pool = [...QUESTIONS.ice];
+        else if(cat === "life") pool = [...QUESTIONS.life];
+        else pool = includeDeep ? [...QUESTIONS.faith, ...QUESTIONS.deepFaith] : [...QUESTIONS.faith];
+        remainEl.textContent = pool.length;
+    }
 
-let used=new Set();
+    document.querySelectorAll(".category").forEach(btn => btn.addEventListener("click", (e) => {
+        document.querySelectorAll(".category").forEach(b => b.classList.remove("active"));
+        e.target.classList.add("active");
+        document.getElementById("faithOption").classList.toggle("hidden", e.target.dataset.category !== "faith");
+        updatePool();
+    }));
 
-function draw(){
- let arr;
- if(sel.value==="전체"){rebuildAll();arr=pool["전체"];}
- else arr=pool[sel.value];
- if(arr.length<5){alert("남은 질문이 부족합니다. 초기화를 눌러주세요.");return;}
- let out=[];
- for(let i=0;i<5;i++){let r=Math.floor(Math.random()*arr.length);let q=arr.splice(r,1)[0];used.add(q);out.push(q);}
- document.getElementById("list").innerHTML=out.map((q,i)=>`<div class="card" style="animation-delay:${i*0.08}s"><h3>${i+1}번 질문</h3><div>${q}</div></div>`).join("");
- document.getElementById("count").innerText="남은 질문 : "+arr.length+"개";
- window.current=out;
-}
+    document.getElementById("drawBtn").addEventListener("click", () => {
+        if(pool.length < 5) { alert("질문이 부족합니다. 초기화하세요."); return; }
+        container.innerHTML = "";
+        for(let i=0; i<5; i++) {
+            const idx = Math.floor(Math.random() * pool.length);
+            const q = pool.splice(idx, 1)[0];
+            container.innerHTML += `<div class="card"><h2>질문 ${i+1}</h2><p>${q}</p></div>`;
+        }
+        updatePool();
+    });
 
-function copyQ(){
- if(!window.current)return;
- navigator.clipboard.writeText(window.current.map((q,i)=>`${i+1}. ${q}`).join("\n"));
- alert("복사되었습니다!");
-}
+    document.getElementById("copyBtn").addEventListener("click", () => {
+        const text = Array.from(document.querySelectorAll(".card p")).map((p, i) => `${i+1}. ${p.textContent}`).join("\n");
+        navigator.clipboard.writeText(text);
+        alert("복사되었습니다.");
+    });
 
-function resetPool(){
- used.clear();
- for(const k in all) pool[k]=[...all[k]];
- rebuildAll();
- draw();
-}
-
-function toggleFull(){
- if(!document.fullscreenElement) document.documentElement.requestFullscreen();
- else document.exitFullscreen();
-}
-draw();
-</script></body></html>
+    document.getElementById("resetBtn").addEventListener("click", () => { container.innerHTML = ""; updatePool(); });
+    document.getElementById("deepFaith").addEventListener("change", updatePool);
+    updatePool();
+</script>
+</body>
+</html>
