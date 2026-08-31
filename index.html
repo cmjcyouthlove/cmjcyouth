@@ -9,26 +9,225 @@
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://cmjcyouthlove.github.io/cmjcyouth/logo.png">
     <style>
-        :root { --primary: #5d8af8; --bg: #f8fbff; --text: #2d3748; }
-        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 15px; line-height: 1.5; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-        h1 { text-align: center; color: var(--primary); margin-bottom: 20px; font-size: 1.5rem; }
+        :root { 
+            --primary: #4f46e5; 
+            --primary-light: #818cf8;
+            --primary-bg: #e0e7ff;
+            --accent: #f43f5e;
+            --bg: #f8fafc; 
+            --card-bg: #ffffff;
+            --text: #1e293b; 
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            background: linear-gradient(135deg, #f0f4ff 0%, #fdf2f8 100%); 
+            color: var(--text); 
+            padding: 12px; 
+            line-height: 1.6; 
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container { 
+            width: 100%;
+            max-width: 500px; 
+            background: var(--card-bg); 
+            padding: 20px 16px; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05); 
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .logo { 
+            width: 100px; 
+            height: 100px;
+            object-fit: cover;
+            display: block; 
+            margin: 0 auto 14px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 20px rgba(79, 70, 229, 0.15);
+        }
+
+        h1 { 
+            text-align: center; 
+            color: var(--primary); 
+            margin-bottom: 16px; 
+            font-size: 1.35rem; 
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
         
         /* 타이머 설정 스타일 */
-        .timer-setting { background: white; padding: 18px; border-radius: 15px; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,.08); border: 1px solid #edf2f7; }
-        .check { display: block; margin: 12px 0; font-size: 17px; cursor: pointer; }
-        .time-row { margin-left: 25px; margin-top: 10px; }
-        #timerMinute { width: 60px; text-align: center; padding: 5px; font-size: 16px; border: 1px solid #ddd; border-radius: 5px; }
+        .timer-setting { 
+            background: linear-gradient(to right, #f8fafc, #f1f5f9); 
+            padding: 14px; 
+            border-radius: 16px; 
+            margin-bottom: 16px; 
+            border: 1px solid var(--border); 
+        }
 
-        .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
-        button { padding: 12px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
-        .cat { background: #eef2f8; color: #666; }
-        .cat.active { background: var(--primary); color: white; }
-        .btn-action { background: var(--primary); color: white; width: 100%; margin-bottom: 8px; font-size: 1rem; }
-        .btn-copy { background: #e2e8f0; color: #444; width: 100%; margin-bottom: 15px; }
-        #timer { font-size: 2rem; font-weight: bold; color: #ff6b6b; text-align: center; margin: 10px 0; }
-        .card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #edf2f7; box-shadow: 0 2px 5px rgba(0,0,0,0.03); font-size: 1rem; }
-        .logo { width: 140px; display:block; margin:0 auto 20px; border-radius: 20px; box-shadow:0 10px 25px rgba(0,0,0,.15);}
+        .check { 
+            display: flex;
+            align-items: center;
+            margin: 6px 0; 
+            font-size: 0.95rem; 
+            font-weight: 600;
+            cursor: pointer; 
+            color: var(--text);
+        }
+
+        .check input[type="checkbox"] {
+            accent-color: var(--primary);
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .time-row { 
+            display: flex;
+            align-items: center;
+            margin-left: 26px; 
+            margin-top: 6px; 
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        #timerMinute { 
+            width: 55px; 
+            text-align: center; 
+            padding: 6px; 
+            font-size: 0.95rem; 
+            font-weight: bold;
+            border: 2px solid var(--border); 
+            border-radius: 8px; 
+            margin-left: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        #timerMinute:focus {
+            border-color: var(--primary);
+        }
+
+        /* 메뉴 버튼 그리드 (모바일 깨짐 방지 2열 배치) */
+        .menu { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 8px; 
+            margin-bottom: 12px; 
+        }
+
+        button { 
+            padding: 12px 8px; 
+            border: none; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            font-size: 0.92rem;
+            cursor: pointer; 
+            transition: all 0.2s ease; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+
+        .cat { 
+            background: #f1f5f9; 
+            color: var(--text-secondary); 
+            border: 1px solid transparent;
+        }
+
+        .cat.active { 
+            background: var(--primary); 
+            color: white; 
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        #f-opt { 
+            text-align: center; 
+            font-size: 0.85rem; 
+            margin-bottom: 12px; 
+            display: none; 
+            background: #eef2ff;
+            padding: 8px;
+            border-radius: 10px;
+            color: var(--primary);
+        }
+
+        #f-opt label {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        #f-opt input {
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+        }
+
+        #timer { 
+            font-size: 2.2rem; 
+            font-weight: 900; 
+            color: var(--accent); 
+            text-align: center; 
+            margin: 12px 0; 
+            letter-spacing: 1px;
+        }
+
+        .btn-action { 
+            background: linear-gradient(135deg, var(--primary), #6366f1); 
+            color: white; 
+            width: 100%; 
+            margin-bottom: 8px; 
+            font-size: 1.05rem; 
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.35);
+        }
+
+        .btn-action:active {
+            transform: scale(0.98);
+        }
+
+        .btn-copy { 
+            background: #e2e8f0; 
+            color: #334155; 
+            width: 100%; 
+            margin-bottom: 14px; 
+            font-size: 0.95rem; 
+        }
+
+        .btn-copy:active {
+            transform: scale(0.98);
+        }
+
+        .card { 
+            background: #ffffff; 
+            padding: 14px; 
+            border-radius: 14px; 
+            margin-bottom: 10px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02); 
+            font-size: 0.95rem; 
+            font-weight: 500;
+            animation: fadeIn 0.3s ease-in-out;
+            border-left: 4px solid var(--primary-light);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -53,14 +252,15 @@
         <button class="cat" data-cat="ice">아이스브레이킹</button>
         <button class="cat" data-cat="life">삶/가치관</button>
         <button class="cat" data-cat="faith">신앙</button>
+        <button class="cat" data-cat="sfc" style="grid-column: span 2;">SFC 맞춤 나눔</button>
     </div>
-    <div id="f-opt" style="text-align:center; font-size:0.8rem; margin-bottom:10px; display:none;">
+    <div id="f-opt">
         <label><input type="checkbox" id="deep" checked> 🌳 초신자 배려: 깊은 질문 제외</label>
     </div>
     
     <div id="timer"></div>
-    <button class="btn-action" onclick="draw()">질문 5개 뽑기</button>
-    <button class="btn-copy" onclick="copy()">복사하기</button>
+    <button class="btn-action" onclick="draw()">✨ 질문 5개 뽑기</button>
+    <button class="btn-copy" onclick="copy()">📋 복사하기</button>
     <div id="q-box"></div>
 </div>
 
@@ -158,7 +358,11 @@
     ];
 
     const SFC = [
-        // 여기에 SFC 질문을 넣으면 됩니다.
+        "SFC 3대 원리(기도와 생활의 훈련, 학업과 생업의 연마, 교회 중심의 삶) 중 나에게 가장 실천하기 어려운 것은?",
+        "대학 캠퍼스 안에서 '그리스도의 제자'로 산다는 것은 구체적으로 어떤 의미일까요?",
+        "학업이나 과제에 치일 때, 신앙인으로서 지키고 싶은 나만의 작은 원칙이 있나요?",
+        "나에게 SFC 공동체가 다른 동아리나 모임과 유독 다르게 느껴지는 부분이 있다면 무엇인가요?",
+        "개혁주의 신앙고백을 내 일상 속에서 가장 쉽고 가깝게 적용할 수 있는 방법은 무엇일까요?",
         const SFC = [
 
 "SFC에 처음 오게 된 계기는 무엇인가요?",
@@ -289,7 +493,8 @@
         b.addEventListener('click', function() {
             document.querySelectorAll('.cat').forEach(x => x.classList.remove('active'));
             this.classList.add('active');
-            document.getElementById('f-opt').style.display = (this.dataset.cat === "faith") ? 'block' : 'none';
+            const cat = this.dataset.cat;
+            document.getElementById('f-opt').style.display = (cat === "faith") ? 'block' : 'none';
         });
     });
 
@@ -321,6 +526,7 @@
         
         if (cat === 'all') {
             pool = [...ICE, ...LIFE, ...FAITH, ...SFC];
+            if (!document.getElementById('deep').checked) pool = [...pool, ...DEEP];
         }
         else if (cat === 'ice') {
             pool = [...ICE];
@@ -330,7 +536,6 @@
         }
         else if (cat === 'faith') {
             pool = [...FAITH];
-
             if (!document.getElementById('deep').checked) {
                 pool = [...pool, ...DEEP];
             }
@@ -367,8 +572,11 @@
         const text = Array.from(document.querySelectorAll('.card')).map(c => c.innerText).join('\n');
         if (text) {
             navigator.clipboard.writeText(text).then(() => alert("복사되었습니다!"));
+        } else {
+            alert("복사할 질문이 없습니다. 먼저 질문을 뽑아주세요!");
         }
     }
 </script>
 </body>
 </html>
+
